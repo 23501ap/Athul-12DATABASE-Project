@@ -1,4 +1,12 @@
 
+function helloWorld() {
+  console.log(helloWorld)
+  firebase.database().ref('/').set(
+    {
+      message: 'Kia ora te ao'
+    }
+  )
+}
 
 var GLOBAL_user; // Google's user object
 
@@ -30,3 +38,10 @@ function fb_popupLogin() {
     });
 }
 
+function handleLoginSuccess() {
+   
+    window.location.href = "home.js";
+}
+
+
+ 
