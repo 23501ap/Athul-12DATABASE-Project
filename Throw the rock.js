@@ -1,3 +1,5 @@
+console.log("Running Throw the rock");
+
 let bg, slingImg;
 let rock1, rock2, rock3;//rocks 
 let t1, t2, t3;//targets

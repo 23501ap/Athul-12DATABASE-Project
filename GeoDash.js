@@ -6,7 +6,7 @@
 //
 // Written by Mr Britton
 /*******************************************************/
-console.log("Running the game");
+console.log("Running Geodash");
 
 
 // End game code
