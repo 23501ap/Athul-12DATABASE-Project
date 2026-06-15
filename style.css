@@ -1,6 +1,12 @@
 html {
   height: 100%;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #ec161d 0%, #dda08f 100%);
+  font-family: 'Arial', sans-serif;
+
 }
 #databaseOutput {
   border: 1px solid gold;

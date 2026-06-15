@@ -30,13 +30,24 @@ function fb_popupLogin() {
         window.location.href = "Username.html" // Moved to other page
     });
 }
+var authenticationListener // this is a global variable to store the listener
+
+function fb_login() {
+    authenticationListener = firebase.auth().onAuthStateChanged(handleLogin);
+
+}
+function fb_logout() {
+    authenticationListener(); // this line turns off the listener
+    firebase.auth().signOut();
+    console.log("logged out (hopefully)")
+}
 
 function Game01() {
-    window.location.href = "Geodash.html" // Moving to Game 1  Geodash
+    window.location.href = "Geodash.html" // Page to Game 1  Geodash
     console.log("Running Geodash")
 }
 function Game02() {
-    window.location.href = "Throw the rock.html" //Moving to Game 2 Throw the rock
+    window.location.href = "Throw the rock.html" // Page to Game 2 Throw the rock
     console.log("Running Throw the rock")
 }
 
@@ -48,20 +59,33 @@ function Home_1() {
 function Submit_1(event) {
     const form = document.getElementById('myForm');
 
-    // Stops the function if the HTML constraints are not met
-    if (form.CheckValidity()) {
-        return;
-    }
-
     // Prevent standard page reload if you are handling submission 
     event.preventDefault();
 
     // Your submission logic goes here
     console.log("Form is valid! Submitting...");
-    window.location.href = "home.js"
+    window.location.href = "home.html"
 }
 
+function HighScores() {
+    firebase.database().ref('/Games').set(
+        {
+            Game1: {
+                users: {
 
+                }
+
+            },
+            Game2: {
+                users: {
+
+                }
+            }
+
+        }
+
+    );
+}
 
 
 
