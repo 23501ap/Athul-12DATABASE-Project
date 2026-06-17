@@ -30,22 +30,26 @@ function fb_popupLogin() {
         window.location.href = "Username.html" // Moved to other page
     });
 }
+
 var authenticationListener // this is a global variable to store the listener
 
 function fb_login() {
-    authenticationListener = firebase.auth().onAuthStateChanged(handleLogin);
+        console.log("Successfully logged in")
 
+    authenticationListener = firebase.auth().onAuthStateChanged(fb_handleLogin);
 }
+
 function fb_logout() {
     authenticationListener(); // this line turns off the listener
     firebase.auth().signOut();
-    console.log("logged out (hopefully)")
+    console.log("Successfully logged out")
 }
 
 function Game01() {
     window.location.href = "Geodash.html" // Page to Game 1  Geodash
     console.log("Running Geodash")
 }
+
 function Game02() {
     window.location.href = "Throw the rock.html" // Page to Game 2 Throw the rock
     console.log("Running Throw the rock")
@@ -68,24 +72,42 @@ function Submit_1(event) {
 }
 
 function HighScores() {
-    firebase.database().ref('/Games').set(
-        {
-            Game1: {
+    console.log(HighScores)
+    firebase.database().ref('/').once('value').then((snapshot) => {
+        console.log(snapshot.val());
+    });
+    function writeHighScores() {
+        firebase.database().ref('/').set({
+            Game01: {
                 users: {
+                    "user1": {
+                        name: "Athul",
+                        score: 100
+                    },
+                    "user2": {
+                        name: "John",
+                        score: 0
+
+                    }
 
                 }
-
             },
-            Game2: {
+            Game02: {
                 users: {
+                    "user1": {
+                        name: "Athul",
+                        score: 50
+                    },
+                    "user2": {
+                        name: "John",
+                        score: 80
+                    }
 
                 }
             }
-
-        }
-
-    );
-}
+        })
+    }
+};
 
 
 
