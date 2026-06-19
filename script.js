@@ -27,22 +27,15 @@ function fb_popupLogin() {
     firebase.auth().signInWithPopup(provider).then((result) => {
         GLOBAL_user = result.user; // Save the user object to a global variable
         console.log("User has logged in")
-        window.location.href = "Username.html" // Moved to other page
+        window.location.href.once = "Username.html" // Moved to other page
     });
 }
 
-var authenticationListener // this is a global variable to store the listener
-
-function fb_login() {
-        console.log("Successfully logged in")
-
-    authenticationListener = firebase.auth().onAuthStateChanged(fb_handleLogin);
-}
-
 function fb_logout() {
-    authenticationListener(); // this line turns off the listener
+    // this line turns off the listener
     firebase.auth().signOut();
     console.log("Successfully logged out")
+    window.location.href = "index.html";
 }
 
 function Game01() {
@@ -60,18 +53,8 @@ function Home_1() {
     console.log("Back to Home Page")
 }
 
-function Submit_1(event) {
-    const form = document.getElementById('myForm');
 
-    // Prevent standard page reload if you are handling submission 
-    event.preventDefault();
-
-    // Your submission logic goes here
-    console.log("Form is valid! Submitting...");
-    window.location.href = "home.html"
-}
-
-function HighScores() {
+function HighScores() { // setting up the database for high scores
     console.log(HighScores)
     firebase.database().ref('/').once('value').then((snapshot) => {
         console.log(snapshot.val());
@@ -109,5 +92,85 @@ function HighScores() {
     }
 };
 
+
+function Submit_1(event) {
+    const form = document.getElementById('myForm');
+    const username = form.Username.value;
+    const name = form.name.value;
+    const age = form.Age.value;
+
+    // Prevent standard page reload
+    event.preventDefault();
+
+    // Reference to the specific user in the database
+    const userRef = firebase.database().ref('/game1/users/' + username);
+
+    // Check if the username already exists
+    userRef.once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+            alert("Error: Username already taken. Please choose another one.");
+        } else {
+
+            userRef.set({
+                name: name,
+                age: age
+            }).then(() => {
+                console.log("Form submitted successfully!");
+
+                // Call the high score function here before leaving the page
+                // This initializes their score to 0 using their custom username
+                firebase.database().ref('/Game01/users/' + username).set({
+                    name: name,
+                    score: 0
+                }).then(() => {
+                    window.location.href = "home.html";
+                });
+            });
+        }
+    }).catch((error) => {
+        console.error("Error checking username: ", error);
+    });
+};
+
+
+//function Submit_1(event) {
+
+// const form = document.getElementById('myForm');
+// firebase.database().ref('/game1/users/' + form.Username.value).set({
+// name: form.name.value,
+// age: form.Age.value
+//});
+
+
+// Prevent standard page reload if you are handling submission 
+//event.preventDefault();
+
+// Your submission logic goes here
+// console.log("Form is valid! Submitting.");
+//window.location.href = "home.html"
+
+function HighScores() {
+    // setting up the database for high scores 
+    console.log(HighScores);
+
+    firebase.database().ref('/').once('value').then((snapshot) => {
+        console.log(snapshot.val());
+    });
+
+    // Pass the username, name, and score as parameters
+    function writeHighScores(username, name, score) {
+        // Use the username variable inside the database path
+        firebase.database().ref('/Game01/users/' + username).set({
+            name: name,
+            score: score
+        })
+            .then(() => {
+                console.log("High score saved successfully!");
+            })
+            .catch((error) => {
+                console.error("Error saving score: ", error);
+            });
+    }
+}
 
 
