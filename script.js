@@ -6,20 +6,43 @@ function fb_login() {
 }
 function fb_handleLogin(_user) {
     if (_user) {
-        console.log("User is logged in")
-        GLOBAL_user = _user;
-        firebase.database().ref('/Games/users/' + GLOBAL_user.uid).update(
-            {
-                name: GLOBAL_user.displayName
-            }
-        );
-        window.location.href = "home.html" //Moving to Home Page
 
-    } else {
+        GLOBAL_user = _user;
+        console.log("User is logged in - Starting the popup process")
+        console.log("User details: ", GLOBAL_user);
+        firebase.database().ref('/users/' + GLOBAL_user.uid).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                console.log("User data already exists in the database.");
+            } else {
+                console.log("User data does not exist in the database. Creating new entry.");
+                firebase.database().ref('/users/' + GLOBAL_user.uid).set({
+                    name: GLOBAL_user.displayName,
+                    email: GLOBAL_user.email,
+                    uid: GLOBAL_user.uid
+                })
+                    .then(() => {
+                        console.log("User data saved successfully!");
+                    })
+                    .catch((error) => {
+                        console.error("Error saving user data: ", error);
+                    }); 
+            }
+        }).catch((error) => {
+            console.error("Error checking user data: ", error);
+        });
+
+        window.location.href = "Username.html" //Moving to Home Page
+
+    }
+
+    else {
         console.log("User is NOT logged in - Starting the popup process")
         fb_popupLogin();
 
+        window.location.href = "Username.html" //Moving to Home Page
+
     }
+
 }
 function fb_popupLogin() {
     var provider = new firebase.auth.GoogleAuthProvider();
@@ -27,11 +50,10 @@ function fb_popupLogin() {
     firebase.auth().signInWithPopup(provider).then((result) => {
         GLOBAL_user = result.user; //Save the user details object to a global variable
         console.log("User has logged in")
-        window.location.href = "Home.html" //Moving to Home Page
+        window.location.href = "Username.html" //Moving to Username Page
     });
 }
 
-var authenticantionListner
 function fb_login() {
     authenticationListener = firebase.auth().onAuthStateChanged(fb_handleLogin);
 }
@@ -144,7 +166,7 @@ function HighScores() {
 function Submit_1() {
     //Check if the user is logged in
     if (!GLOBAL_user) {
-        alert("Please log in before submitting the form!");
+
         return;
     }
     // Get the form data
