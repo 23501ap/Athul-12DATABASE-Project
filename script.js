@@ -2,7 +2,7 @@
 var GLOBAL_user;
 var authenticationListener;
 function fb_login() {
-    authenticationListener = firebase.auth().onAuthStateChanged(fb_handleLogin);
+    authenticationListener = firebase.auth().onAuthStateChanged(fb_popupLogin);
 }
 function fb_handleLogin(_user) {
     if (_user) {
@@ -12,13 +12,15 @@ function fb_handleLogin(_user) {
         console.log("User details: ", GLOBAL_user);
         firebase.database().ref('/users/' + GLOBAL_user.uid).once('value').then((snapshot) => {
             if (snapshot.exists()) {
-                console.log("User data already exists in the database.");
+                console.log("User data already exists in the database.");//checks for the user data in the database and if it exists, it will log a message to the console.
             } else {
                 console.log("User data does not exist in the database. Creating new entry.");
                 firebase.database().ref('/users/' + GLOBAL_user.uid).set({
                     name: GLOBAL_user.displayName,
                     email: GLOBAL_user.email,
-                    uid: GLOBAL_user.uid
+                    uid: GLOBAL_user.uid,
+                    age: GLOBAL_user.age,
+                    username: GLOBAL_user.username
                 })
                     .then(() => {
                         console.log("User data saved successfully!");
@@ -31,7 +33,7 @@ function fb_handleLogin(_user) {
             console.error("Error checking user data: ", error);
         });
 
-        window.location.href = "Username.html" //Moving to Home Page
+       window.location.href = "home.html" //Moving to Home Page
 
     }
 
@@ -39,7 +41,7 @@ function fb_handleLogin(_user) {
         console.log("User is NOT logged in - Starting the popup process")
         fb_popupLogin();
 
-        window.location.href = "Username.html" //Moving to Home Page
+        
 
     }
 
@@ -50,7 +52,7 @@ function fb_popupLogin() {
     firebase.auth().signInWithPopup(provider).then((result) => {
         GLOBAL_user = result.user; //Save the user details object to a global variable
         console.log("User has logged in")
-        window.location.href = "Username.html" //Moving to Username Page
+        
     });
 }
 
@@ -67,6 +69,10 @@ function fb_logout() {
 function Game01() {
     window.location.href = "Geodash.html" // Page to Game 1  Geodash
     console.log("Running Geodash")
+    firebase.database().ref('/Game01').once('value').then((snapshot) => {
+        console.log(snapshot.val());
+        score = snapshot.val().score;   
+    });
 }
 
 function Game02() {
@@ -169,25 +175,18 @@ function Submit_1() {
 
         return;
     }
-    // Get the form data
-    const Yourname = document.getElementById("Your Name").value;
-    const Age = document.getElementById("Age").value;
-    const Username = document.getElementById("Username").value;
     console.log("Here")
-    console.log(Username)
 
     console.log(GLOBAL_user.displayName + " likes " + Username + " They have it " + Yourname + " times")
-    firebase.database().ref('/Games/users/' + GLOBAL_user.uid).update(
+    firebase.database().ref('/users/' + GLOBAL_user.uid).update(
         {
-            name: Yourname,
+            name: name,
             age: Age,
             username: Username
         }
     )
 
     HTML_OUTPUT.innerHTML = GLOBAL_user.displayName + " likes " + Username + " They have it " + Yourname + " times"
+    window.location.href = "home.html" //Moving to game Pages
 }
-function fb_readError(error) {
-    console.log("There was an error reading reading the message");
-    console.error(error);
-};
+
