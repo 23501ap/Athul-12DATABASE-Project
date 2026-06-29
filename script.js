@@ -10,7 +10,7 @@ function fb_handleLogin(_user) {
         GLOBAL_user = _user;
         console.log("User is logged in - Starting the popup process")
         console.log("User details: ", GLOBAL_user);
-        firebase.database().ref('/users/' + GLOBAL_user.uid).once('value').then((snapshot) => {
+        firebase.database().ref('Game/users/' + GLOBAL_user.uid).once('value').then((snapshot) => {
             if (snapshot.exists()) {
                 console.log("User data already exists in the database.");//checks for the user data in the database and if it exists, it will log a message to the console.
             } else {
@@ -27,22 +27,19 @@ function fb_handleLogin(_user) {
                     })
                     .catch((error) => {
                         console.error("Error saving user data: ", error);
-                    }); 
+                    });
             }
         }).catch((error) => {
             console.error("Error checking user data: ", error);
         });
 
-       window.location.href = "home.html" //Moving to Home Page
+
 
     }
 
     else {
         console.log("User is NOT logged in - Starting the popup process")
         fb_popupLogin();
-
-        
-
     }
 
 }
@@ -52,7 +49,7 @@ function fb_popupLogin() {
     firebase.auth().signInWithPopup(provider).then((result) => {
         GLOBAL_user = result.user; //Save the user details object to a global variable
         console.log("User has logged in")
-        
+        window.location.href = "home.html" //Moving to Home Page
     });
 }
 
@@ -71,7 +68,7 @@ function Game01() {
     console.log("Running Geodash")
     firebase.database().ref('/Game01').once('value').then((snapshot) => {
         console.log(snapshot.val());
-        score = snapshot.val().score;   
+        score = snapshot.val().score;
     });
 }
 
@@ -86,64 +83,23 @@ function Home_1() {
 }
 
 
-function HighScores() { // setting up the database for high scores
-    console.log(HighScores)
-    firebase.database().ref('/').once('value').then((snapshot) => {
-        console.log(snapshot.val());
+function Submit_1(event) {
+
+    const form = document.getElementById('myForm');
+    firebase.database().ref('/users/' + form.Username.value).set({
+        name: form.name.value,
+        age: form.Age.value
     });
-    function writeHighScores() {
-        firebase.database().ref('/Games').set({
-            Games: {
-
-                users: {
-                    "user1": {
-                        name: "Athul",
-                        score: 100
-                    },
-                    "user2": {
-                        name: "John",
-                        score: 0
-
-                    }
-
-                }
-            },
-            Game02: {
-                users: {
-                    "user1": {
-                        name: "Athul",
-                        score: 50
-                    },
-                    "user2": {
-                        name: "John",
-                        score: 80
-                    }
-
-                }
-            }
-
-        });
-    }
-};
 
 
+    //Prevent standard page reload if you are handling submission 
+    event.preventDefault();
 
+    //Your submission logic goes here
+    console.log("Form is valid! Submitting.");
+    window.location.href = "home.html"
+}
 
-//function Submit_1(event) {
-
-// const form = document.getElementById('myForm');
-// firebase.database().ref('/game1/users/' + form.Username.value).set({
-// name: form.name.value,
-// age: form.Age.value
-//});
-
-
-// Prevent standard page reload if you are handling submission 
-//event.preventDefault();
-
-// Your submission logic goes here
-// console.log("Form is valid! Submitting.");
-//window.location.href = "home.html"
 
 function HighScores() {
     // setting up the database for high scores 
