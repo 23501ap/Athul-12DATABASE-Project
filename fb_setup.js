@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
     apiKey: "AIzaSyCRFEEaBxknFnx2RI4Tl5eKz0_9HUdQAZg",
     authDomain: "athul-12database-project.firebaseapp.com",
