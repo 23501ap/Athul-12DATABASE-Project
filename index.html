@@ -11,18 +11,22 @@
   <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
 
-  <script src="fb_setup.js"></script>
+  
   <link href="style.css" rel="stylesheet" type="text/css" />
 
 </head>
 
 <body>
 
-  <h1>Hello Gamers</h1>
-  <h2>Login to start playing</h2>
+<button onclick="fb_popupLogin()">Login with Google</button>
 
-  <button onclick="fb_login()">Login</button>
 
+<h2 id="welcomeMessage"></h2>
+
+<button onclick="HighScores()">Highscore</button>
+
+<div id="game01Scores"></div>
+<div id="game02Scores"></div>
 
 
   <script src="script.js"></script>

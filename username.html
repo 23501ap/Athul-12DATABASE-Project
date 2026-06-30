@@ -9,29 +9,25 @@
   <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.1.2/firebase-analytics.js"></script>
 
-  <script src="fb_setup.js"></script>
+ 
   <link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 
 <body>
 
   <div id="first-login-container">
-    <form id="myform">
-      <label for="name">Your Name:</label>
-      <input type="text" id="name" name="name" pattern="[a-zA-Z ]+" title="Please enter a valid name" required />
-
-      <label for="Username">Username:</label>
-      <input type="text" id="Username" name="Username" minlength="5" maxlength="13" title="Please enter a valid username" pattern="[a-zA-Z0-9]+" required />
-
-      <label for="Age">Age</label>
-      <input type="number" id="Age" name="Age" min="11" max="99" required />
-    </form>
-
-    <button type="submit" form="myform" onclick="Submit_1(event)">Submit</button>
+   
+    <form onsubmit="Submit_1(event)">
+  <input id="name" placeholder="Name">
+  <input id="username" placeholder="Username">
+  <input id="age" placeholder="Age">
+  <button type="submit">Save</button>
+</form>
   </div>
 
+</body>
   <script src="script.js"></script>
-  <script src="fb_setup.js"></script>
+  
 
 </body>
 </html>
