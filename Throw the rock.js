@@ -262,4 +262,11 @@ function drawEndScreen() {
 
   text("RESTART", width/2, restartBtn.y+52);// restart button  (restart the game)
   textStyle(NORMAL);
+   console.log("Game ended, you got "+score+" points.")
+
+   
 }
+firebase.database().ref("users/" + user.uid + "/game2scores").set(score)
+        .then(function () {
+            console.log("User score saved successfully.");
+        });

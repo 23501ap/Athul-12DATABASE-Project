@@ -12,14 +12,20 @@ console.log("Running Geodash");
 // End game code
 function endGame(_player, _obstacle){
     console.log("Game ended, you got "+score+" points.")
-    screenSelector = "end";
+    screenSelector = "end"; 
     player.remove();
     obstacles.removeAll();
+    firebase.database().ref("users/" + user.uid + "/game1scores").push(score)
+        .then(function () {
+            console.log("User score saved successfully.");
+        });
+} 
     // Put your database writes here:
 
 
 
-}
+
+
 
 
 

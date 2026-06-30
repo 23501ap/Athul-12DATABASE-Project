@@ -18,9 +18,9 @@
   <div id="first-login-container">
    
     <form onsubmit="Submit_1(event)">
-  <input id="name" placeholder="Name" required>
-  <input id="username" placeholder="Username" required>
-  <input id="age" placeholder="Age" required>
+  <input id="name" placeholder="Name" pattern="[A-Za-z]+" title="Only A-Z and a-z allowed" required>
+  <input id="username" placeholder="Username" pattern="[A-Za-z0-9_]+" title="Only A-Z, a-z, 0-9, and _ allowed" required>
+  <input id="age" placeholder="Age" min="11" max="99" required>
   <button type="submit">Save</button>
 </form>
   </div>

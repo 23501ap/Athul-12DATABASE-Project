@@ -11,6 +11,7 @@ var firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+
 var user = null;
 var profile = null;
 
@@ -19,11 +20,11 @@ function login() {
     var provider = new firebase.auth.GoogleAuthProvider();
 
     firebase.auth().signInWithPopup(provider)
-        .then(function(result) {
+        .then(function (result) {
             user = result.user;
             checkUser();
         })
-        .catch(function(error) {
+        .catch(function (error) {
             console.log(error);
 
             if (error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user") {
@@ -38,7 +39,7 @@ function fb_popupLogin() {
 
 function logout() {
     firebase.auth().signOut()
-        .then(function() {
+        .then(function () {
             user = null;
             profile = null;
             goTo("index.html");
@@ -59,7 +60,7 @@ function checkUser() {
     }
 
     firebase.database().ref("users/" + user.uid).once("value")
-        .then(function(snapshot) {
+        .then(function (snapshot) {
             if (snapshot.exists()) {
                 profile = snapshot.val();
             } else {
@@ -82,7 +83,7 @@ function checkUser() {
 }
 
 function fb_login() {
-    firebase.auth().onAuthStateChanged(function(currentUser) {
+    firebase.auth().onAuthStateChanged(function (currentUser) {
         user = currentUser;
         checkUser();
     });
@@ -97,7 +98,6 @@ function getValue(id) {
 
     return "";
 }
-
 function getValueFromMany(ids) {
     for (var i = 0; i < ids.length; i++) {
         var value = getValue(ids[i]);
@@ -109,7 +109,6 @@ function getValueFromMany(ids) {
 
     return "";
 }
-
 function Submit_1(event) {
     if (event) {
         event.preventDefault();
@@ -131,14 +130,18 @@ function Submit_1(event) {
 
     profile = {
         name: name,
+        email: user.email,
         username: username,
         age: age,
-        email: user.email,
-        uid: user.uid
+        uid: user.uid,
+        game01HighScore: 0,
+        game02HighScore: 0,
+        scores: []
+
     };
 
     firebase.database().ref("users/" + user.uid).set(profile)
-        .then(function() {
+        .then(function () {
             goTo("home.html");
         });
 }
@@ -168,10 +171,10 @@ function saveHighScore(gameName, score) {
         return;
     }
 
-    var scoreRef = firebase.database().ref("highscores/" + gameName + "/" + user.uid);
+    var scoreRef = firebase.database().ref("highscores/" + score + "/" + user.uid);
 
     scoreRef.once("value")
-        .then(function(snapshot) {
+        .then(function (snapshot) {
             var oldScore = 0;
 
             if (snapshot.exists()) {
@@ -193,14 +196,14 @@ function saveScore(gameName, score) {
 
 function showTopScores(gameName, boxId) {
     firebase.database().ref("highscores/" + gameName).once("value")
-        .then(function(snapshot) {
+        .then(function (snapshot) {
             var allScores = [];
 
-            snapshot.forEach(function(child) {
+            snapshot.forEach(function (child) {
                 allScores.push(child.val());
             });
 
-            allScores.sort(function(a, b) {
+            allScores.sort(function (a, b) {
                 return b.score - a.score;
             });
 
@@ -212,15 +215,10 @@ function showTopScores(gameName, boxId) {
             }
 
             if (topFive.length === 0) {
-                box.innerHTML = "No scores yet";
+                box.innerHTML = "No scores yet.";
                 return;
-            }
-
-            box.innerHTML = "";
-
-            for (var i = 0; i < topFive.length; i++) {
-                box.innerHTML += (i + 1) + ". " + topFive[i].username + " - " + topFive[i].score + "<br>";
-            }
+            }  
+            
         });
 }
 
@@ -235,31 +233,20 @@ function HighScoreButton() {
 
 function Game01() {
     goTo("Geodash.html");
+    console.log("Game01 button clicked");
 }
 
 function Game02() {
     goTo("Throw the rock.html");
+    console.log("Game02 button clicked");
 }
 
 function Home_1() {
     goTo("home.html");
+    console.log("Home button clicked");
 }
 
 
-window.login = login;
-window.fb_login = fb_login;
-window.fb_popupLogin = fb_popupLogin;
-window.logout = logout;
-window.fb_logout = fb_logout;
-window.Submit_1 = Submit_1;
-window.submitUsername = submitUsername;
-window.saveHighScore = saveHighScore;
-window.saveScore = saveScore;
-window.HighScores = HighScores;
-window.HighScoreButton = HighScoreButton;
-window.Game01 = Game01;
-window.Game02 = Game02;
-window.Home_1 = Home_1;
 
 function goTo(page) {
     window.location.href = page;
