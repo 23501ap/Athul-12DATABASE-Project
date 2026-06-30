@@ -9,110 +9,105 @@ var firebaseConfig = {
     measurementId: "G-3SSMLK5SC7"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
+
+var user = null;
+var profile = null;
+
+
+function login() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth().signInWithPopup(provider)
+        .then(function(result) {
+            user = result.user;
+            checkUser();
+        })
+        .catch(function(error) {
+            console.log(error);
+
+            if (error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user") {
+                alert("Popup was blocked. Please allow popups and try again.");
+            }
+        });
 }
 
-var GLOBAL_user = null;
-var GLOBAL_profile = null;
-var authenticationListener = null;
-
-function getPageName() {
-    var page = window.location.pathname.split("/").pop().toLowerCase();
-    return page || "index.html";
+function fb_popupLogin() {
+    login();
 }
 
-function goToPage(pageName) {
-    if (getPageName() !== pageName.toLowerCase()) {
-        window.location.href = pageName;
-    }
+function logout() {
+    firebase.auth().signOut()
+        .then(function() {
+            user = null;
+            profile = null;
+            goTo("index.html");
+        });
 }
 
-function getInputValue(idList) {
-    for (var i = 0; i < idList.length; i++) {
-        var input = document.getElementById(idList[i]) || document.getElementsByName(idList[i])[0];
-
-        if (input) {
-            return input.value.trim();
-        }
-    }
-
-    return "";
+function fb_logout() {
+    logout();
 }
 
-function fb_login() {
-    if (authenticationListener) {
-        authenticationListener();
-    }
-
-    authenticationListener = firebase.auth().onAuthStateChanged(fb_handleLogin);
-}
-
-function fb_handleLogin(user) {
-    var page = getPageName();
-
-    if (!user) {
-        GLOBAL_user = null;
-        GLOBAL_profile = null;
-
-        if (page !== "index.html") {
-            goToPage("index.html");
+function checkUser() {
+    if (user === null) {
+        if (pageName() !== "index.html") {
+            goTo("index.html");
         }
 
         return;
     }
 
-    GLOBAL_user = user;
-
-    firebase.database().ref("/users/" + user.uid).once("value")
+    firebase.database().ref("users/" + user.uid).once("value")
         .then(function(snapshot) {
             if (snapshot.exists()) {
-                GLOBAL_profile = snapshot.val();
+                profile = snapshot.val();
             } else {
-                GLOBAL_profile = null;
+                profile = null;
             }
 
-            if (!GLOBAL_profile || !GLOBAL_profile.username) {
-                if (page !== "username.html") {
-                    goToPage("username.html");
+            if (profile === null || profile.username === undefined || profile.username === "") {
+                if (pageName() !== "username.html") {
+                    goTo("username.html");
                 }
-                return;
+            } else {
+                if (pageName() === "index.html" || pageName() === "username.html") {
+                    goTo("home.html");
+                } else {
+                    showWelcomeMessage();
+                    HighScores();
+                }
             }
-
-            if (page === "index.html" || page === "username.html") {
-                goToPage("home.html");
-                return;
-            }
-
-            showWelcomeMessage();
-            HighScores();
-        })
-        .catch(function(error) {
-            console.error("Error checking user data:", error);
         });
 }
 
-function fb_popupLogin() {
-    var provider = new firebase.auth.GoogleAuthProvider();
-
-    firebase.auth().signInWithRedirect(provider)
-        .catch(function(error) {
-            console.error("Login failed:", error);
-        });
+function fb_login() {
+    firebase.auth().onAuthStateChanged(function(currentUser) {
+        user = currentUser;
+        checkUser();
+    });
 }
-function fb_logout() {
-    if (authenticationListener) {
-        authenticationListener();
-        authenticationListener = null;
+
+function getValue(id) {
+    var input = document.getElementById(id);
+
+    if (input) {
+        return input.value.trim();
     }
 
-    firebase.auth().signOut()
-        .then(function() {
-            goToPage("index.html");
-        })
-        .catch(function(error) {
-            console.error("Logout failed:", error);
-        });
+    return "";
+}
+
+function getValueFromMany(ids) {
+    for (var i = 0; i < ids.length; i++) {
+        var value = getValue(ids[i]);
+
+        if (value !== "") {
+            return value;
+        }
+    }
+
+    return "";
 }
 
 function Submit_1(event) {
@@ -120,129 +115,118 @@ function Submit_1(event) {
         event.preventDefault();
     }
 
-    if (!GLOBAL_user) {
+    if (user === null) {
         alert("Please login first.");
         return;
     }
 
-    var name = getInputValue(["name", "Name", "Your Name", "yourName"]);
-    var username = getInputValue(["username", "Username"]);
-    var age = getInputValue(["age", "Age"]);
+    var name = getValueFromMany(["name", "Name", "Your Name", "yourName"]);
+    var username = getValueFromMany(["username", "Username"]);
+    var age = getValueFromMany(["age", "Age"]);
 
-    if (!name || !username || !age) {
-        alert("Please fill in your name, username, and age.");
+    if (name === "" || username === "" || age === "") {
+        alert("Please fill everything.");
         return;
     }
 
-    var profile = {
+    profile = {
         name: name,
         username: username,
         age: age,
-        email: GLOBAL_user.email || "",
-        uid: GLOBAL_user.uid
+        email: user.email,
+        uid: user.uid
     };
 
-    firebase.database().ref("/users/" + GLOBAL_user.uid).set(profile)
+    firebase.database().ref("users/" + user.uid).set(profile)
         .then(function() {
-            GLOBAL_profile = profile;
-            goToPage("home.html");
-        })
-        .catch(function(error) {
-            console.error("Error saving profile:", error);
+            goTo("home.html");
         });
+}
+
+function submitUsername(event) {
+    Submit_1(event);
 }
 
 function showWelcomeMessage() {
-    var message = document.getElementById("welcomeMessage");
+    var box = document.getElementById("welcomeMessage");
 
-    if (message && GLOBAL_profile) {
-        message.innerHTML = "Welcome back, " + GLOBAL_profile.username + "!";
+    if (box && profile) {
+        box.innerHTML = "Welcome, " + profile.username;
     }
 }
 
-function saveHighScore(gameId, score) {
-    if (!GLOBAL_user || !GLOBAL_profile) {
-        console.log("Login and username are needed before saving a score.");
+function saveHighScore(gameName, score) {
+    if (user === null || profile === null) {
+        console.log("No user/profile found, score not saved.");
         return;
     }
 
-    var newScore = Number(score);
+    score = Number(score);
 
-    if (isNaN(newScore)) {
-        console.log("Score must be a number.");
+    if (isNaN(score)) {
+        console.log("Score is not a number.");
         return;
     }
 
-    var scoreRef = firebase.database().ref("/highscores/" + gameId + "/" + GLOBAL_user.uid);
+    var scoreRef = firebase.database().ref("highscores/" + gameName + "/" + user.uid);
 
     scoreRef.once("value")
         .then(function(snapshot) {
-            var oldScore = snapshot.exists() ? Number(snapshot.val().score) : -1;
+            var oldScore = 0;
 
-            if (newScore > oldScore) {
-                return scoreRef.set({
-                    username: GLOBAL_profile.username,
-                    score: newScore,
-                    uid: GLOBAL_user.uid
-                });
+            if (snapshot.exists()) {
+                oldScore = Number(snapshot.val().score);
             }
 
-            return null;
-        })
-        .then(function() {
-            console.log("Score checked/saved for " + gameId + ": " + newScore);
-        })
-        .catch(function(error) {
-            console.error("Error saving high score:", error);
+            if (score > oldScore) {
+                return scoreRef.set({
+                    username: profile.username,
+                    score: score
+                });
+            }
         });
 }
 
-function saveScore(gameId, score) {
-    saveHighScore(gameId, score);
+function saveScore(gameName, score) {
+    saveHighScore(gameName, score);
 }
 
-function getHighScores(gameId, callback) {
-    firebase.database().ref("/highscores/" + gameId).once("value")
+function showTopScores(gameName, boxId) {
+    firebase.database().ref("highscores/" + gameName).once("value")
         .then(function(snapshot) {
-            var scores = [];
+            var allScores = [];
 
             snapshot.forEach(function(child) {
-                scores.push(child.val());
+                allScores.push(child.val());
             });
 
-            scores.sort(function(a, b) {
-                return Number(b.score) - Number(a.score);
+            allScores.sort(function(a, b) {
+                return b.score - a.score;
             });
 
-            callback(scores.slice(0, 5));
-        })
-        .catch(function(error) {
-            console.error("Error getting high scores:", error);
+            var topFive = allScores.slice(0, 5);
+            var box = document.getElementById(boxId);
+
+            if (box === null) {
+                return;
+            }
+
+            if (topFive.length === 0) {
+                box.innerHTML = "No scores yet";
+                return;
+            }
+
+            box.innerHTML = "";
+
+            for (var i = 0; i < topFive.length; i++) {
+                box.innerHTML += (i + 1) + ". " + topFive[i].username + " - " + topFive[i].score + "<br>";
+            }
         });
-}
-
-function showTop5(gameId, elementId) {
-    getHighScores(gameId, function(scores) {
-        var output = document.getElementById(elementId);
-
-        if (!output) {
-            return;
-        }
-
-        if (scores.length === 0) {
-            output.innerHTML = "No scores yet";
-            return;
-        }
-
-        output.innerHTML = scores.map(function(item, index) {
-            return (index + 1) + ". " + item.username + " - " + item.score;
-        }).join("<br>");
-    });
 }
 
 function HighScores() {
-    showTop5("Game01", "game01Scores");
-    showTop5("Game02", "game02Scores");
+    showTopScores("Game01", "game01Scores");
+    showTopScores("Game02", "game02Scores");
 }
 
 function HighScoreButton() {
@@ -250,17 +234,40 @@ function HighScoreButton() {
 }
 
 function Game01() {
-    goToPage("Geodash.html");
+    goTo("Geodash.html");
 }
 
 function Game02() {
-    goToPage("Throw the rock.html");
+    goTo("Throw the rock.html");
 }
 
 function Home_1() {
-    goToPage("home.html");
+    goTo("home.html");
 }
 
-window.addEventListener("load", function() {
-    fb_login();
-});
+
+window.login = login;
+window.fb_login = fb_login;
+window.fb_popupLogin = fb_popupLogin;
+window.logout = logout;
+window.fb_logout = fb_logout;
+window.Submit_1 = Submit_1;
+window.submitUsername = submitUsername;
+window.saveHighScore = saveHighScore;
+window.saveScore = saveScore;
+window.HighScores = HighScores;
+window.HighScoreButton = HighScoreButton;
+window.Game01 = Game01;
+window.Game02 = Game02;
+window.Home_1 = Home_1;
+
+function goTo(page) {
+    window.location.href = page;
+}
+
+function pageName() {
+    var path = window.location.pathname;
+    return path.substring(path.lastIndexOf("/") + 1);
+}
+
+fb_login();
