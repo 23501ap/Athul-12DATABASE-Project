@@ -1,134 +1,118 @@
-var firebaseConfig = {
-    apiKey: "AIzaSyCRFEEaBxknFnx2RI4Tl5eKz0_9HUdQAZg",
-    authDomain: "athul-12database-project.firebaseapp.com",
-    databaseURL: "https://athul-12database-project-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "athul-12database-project",
-    storageBucket: "athul-12database-project.firebasestorage.app",
-    messagingSenderId: "378430784037",
-    appId: "1:378430784037:web:07d0633890fb04411c35cc",
-    measurementId: "G-3SSMLK5SC7"
-};
-
-firebase.initializeApp(firebaseConfig);
-
 
 var user = null;
 var profile = null;
 
 
-function login() {
+function login() {// login when user click the login button
     var provider = new firebase.auth.GoogleAuthProvider();
 
     firebase.auth().signInWithPopup(provider)
-        .then(function (result) {
+        .then(function (result) {//check for user profile in the database
             user = result.user;
             checkUser();
         })
-        .catch(function (error) {
-            console.log(error);
 
-            if (error.code === "auth/popup-blocked" || error.code === "auth/popup-closed-by-user") {
-                alert("Popup was blocked. Please allow popups and try again.");
-            }
-        });
 }
 
-function fb_popupLogin() {
+
+function fb_popupLogin() {// login pop up when user click the login button
     login();
 }
 
-function logout() {
+function logout() {// logout when user click the logout button
     firebase.auth().signOut()
-        .then(function () {
-            user = null;
-            profile = null;
-            goTo("index.html");
+        .then(function () {// logout successful
+            user = null;// set user to null when user logout
+            profile = null;// set profile to null when user logout
+            goTo("index.html");// go to index.html when user logout
         });
 }
 
-function fb_logout() {
+function fb_logout() {// logout when user click the logout button
     logout();
 }
 
-function checkUser() {
+function checkUser() {// check if user is logged in or not
     if (user === null) {
-        if (pageName() !== "index.html") {
-            goTo("index.html");
+        if (pageName() !== "index.html") {// if user is not logged in and not on index.html page then go to index.html page
+            goTo("index.html");// go to index.html page when user is not logged in
         }
 
         return;
-    }
-
-    firebase.database().ref("users/" + user.uid).once("value")
+    }// if user is logged in then check for user profile in the database
+    console.log("hello");
+    firebase.database().ref("users/" + user.uid).once("value")// check for user profile in the database
         .then(function (snapshot) {
             if (snapshot.exists()) {
-                profile = snapshot.val();
+                profile = snapshot.val();// set profile to the user profile in the database
             } else {
-                profile = null;
+                profile = null;// set profile to null if user profile not found in the database
             }
-
-            if (profile === null || profile.username === undefined || profile.username === "") {
+            console.log(profile)
+            if (profile === null || profile.username === undefined || profile.username === "") { // if user profile not found in the database or username is not set then go to username.html page
+                console.log("checking")
                 if (pageName() !== "username.html") {
-                    goTo("username.html");
+                    goTo("username.html"); // go to username.html page when user profile not found in the database or username is not set
                 }
             } else {
                 if (pageName() === "index.html" || pageName() === "username.html") {
-                    goTo("home.html");
+                    console.log()// if user is logged in and on index.html or username.html page then go to home.html page
+                    goTo("home.html");// go to home.html page when user is logged in and on index.html or username.html page
                 } else {
-                    showWelcomeMessage();
-                    HighScores();
+                    showWelcomeMessage();//Welcome message when user is logged in and on home.html page
                 }
             }
         });
 }
 
-function fb_login() {
+function fb_login() {// login when user click the login button
     firebase.auth().onAuthStateChanged(function (currentUser) {
         user = currentUser;
         checkUser();
     });
 }
 
-function getValue(id) {
-    var input = document.getElementById(id);
+function getValue(id) {// get value from input field by id
+    var input = document.getElementById(id);// get input field by id
 
     if (input) {
-        return input.value.trim();
-    }
+        return input.value.trim();// return value of input field
+    }// return empty string if input field not found
 
     return "";
 }
-function getValueFromMany(ids) {
-    for (var i = 0; i < ids.length; i++) {
+function getValueFromMany(ids) {// get value from input field by id from many ids
+    for (var i = 0; i < ids.length; i++) {// loop through all ids
         var value = getValue(ids[i]);
 
-        if (value !== "") {
+        if (value !== "") {// return value if input field found and not empty
             return value;
         }
     }
 
     return "";
 }
-function Submit_1(event) {
+
+function Submit_1(event) {// submit user profile to the database
     if (event) {
-        event.preventDefault();
+        event.preventDefault();//prevent default form submission behavior
     }
 
-    if (user === null) {
+    if (user === null) {// if user is not logged in then show alert message
         alert("Please login first.");
         return;
     }
 
-    var name = getValueFromMany(["name", "Name", "Your Name", "yourName"]);
+    var name = getValueFromMany(["name", "Name", "Your Name", "yourName"]);//get value from input field by id from many ids
     var username = getValueFromMany(["username", "Username"]);
     var age = getValueFromMany(["age", "Age"]);
 
-    if (name === "" || username === "" || age === "") {
+    if (name === "" || username === "" || age === "") {// if any of the input field is empty then show alert message
         alert("Please fill everything.");
         return;
     }
 
-    profile = {
+    profile = {// create user profile object
         name: name,
         email: user.email,
         username: username,
@@ -217,8 +201,8 @@ function showTopScores(gameName, boxId) {
             if (topFive.length === 0) {
                 box.innerHTML = "No scores yet.";
                 return;
-            }  
-            
+            }
+
         });
 }
 
@@ -228,7 +212,7 @@ function HighScores() {
 }
 
 function HighScoreButton() {
-    HighScores();
+    HighScores(score);
 }
 
 function Game01() {
@@ -249,6 +233,7 @@ function Home_1() {
 
 
 function goTo(page) {
+    console.log("move to another page", page)
     window.location.href = page;
 }
 
@@ -257,4 +242,4 @@ function pageName() {
     return path.substring(path.lastIndexOf("/") + 1);
 }
 
-fb_login();
+
